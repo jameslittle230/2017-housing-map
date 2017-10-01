@@ -1,6 +1,6 @@
 # 2017 Housing Map
 
-This repository holds code used to embed an interactive map on <bowdoinorient.com/housing>. The code is based on the site's WordPress installation, and thus shouldn't be cloned; rather, it just shows the mechanisms used to make the map.
+This repository holds code used to embed an interactive map on [bowdoinorient.com/housing](bowdoinorient.com/housing). The code is based on the site's WordPress installation, and thus shouldn't be cloned; rather, it just shows the mechanisms used to make the map.
 
 `base.html` is the HTML structure of the article, and goes in the content field in WordPress. The `[map]` shortcode on line 169 is replaced with the contents of map.svg by the WordPress engine.
 

@@ -1,0 +1,575 @@
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.css">
+
+<style>
+.single__content p {
+    margin-top: 1em;
+}
+
+.small-alert {
+    display: none;
+}
+
+.options input {
+    margin-right: 8px;
+}
+
+.year-button {
+    display: block;
+    width: 100%;
+}
+
+.year-button-selected {
+    background: #499259;
+}
+
+.page-wrap {
+    max-width: 95%;
+    margin: 0 auto;
+}
+
+.single-sidebar {
+    float: none;
+    clear: both;
+    width: 100%;
+}
+
+.single__content {
+    width: 100%;
+    padding: 0;
+    border: none;
+}
+
+.single__sidebar__heading {
+    display: none;
+}
+
+.single__sidebar__popular {
+    display: none;
+}
+
+.map {
+    width: 65%;
+    height: 90vh;
+    float: left;
+    position: relative;
+    background-color: #FFF;
+}
+
+.map-in-place {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+}
+
+.map-in-place svg {
+    width: 100%;
+}
+
+.single__content svg {
+    position: absolute;
+    width: 100%;
+    max-height: 90vh;
+    background-color: #FFF;
+}
+
+#PINE_HOVER path, #_52_HARPSWELL_HOVER path, #HOWARD_HOVER path, #STOWE_HOVER path,
+#COLES_HOVER path, #CHAMBO_HOVER path, #BRUNSWICK_HOVER path, #MAYFLOWER_HOVER path,
+#STOWE_INN_HOVER path, #SMITH_HOVER path, #HARPSWELL_HOVER path  {
+    pointer-events: all;
+}
+
+.cls-9 {
+    fill: #D96459;
+}
+
+#_52_harpswell .cls-9, #smith .cls-9, #HOWARDHALL .cls-9, #MAYFLOWERAPTS .cls-9  {
+    fill: #F2E394;
+}
+
+#PINE_HOVER path:hover {
+    /*fill: #BADA55;*/
+}
+
+.content {
+    width: 30%;
+    margin-left: 70%;
+}
+
+@media only screen and (max-width:50rem) {
+    .map {
+        display: none;
+    }
+
+    .content {
+        width: 100%;
+        margin: 0;
+    }
+
+    .small-alert {
+        display: block;
+    }
+}
+
+.place-info {
+    position: absolute;
+    left: 27%;
+    top: 40%;
+    width: 300px;
+    /*height: 300px;*/
+    border: 3px solid black;
+    z-index: 10;
+    background-color: white;
+    display: none;
+    box-shadow: 0 0 5px #555
+    /*opacity: 0;*/
+}
+
+/*.cls-9{fill:#ed1c24;}*/
+
+.info-content {
+    display: none;
+    padding: 10px;
+    font-size: 1em;
+    line-height: 1.2;
+}
+
+.form-guide {
+    font-weight: bold;
+}
+
+label {
+    display: block;
+}
+
+.form-buttons {
+    margin-top: 1em;
+}
+</style>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/velocity/1.5.0/velocity.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/sweetalert/1.1.3/sweetalert.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-visible/1.2.0/jquery.visible.min.js"></script>
+
+<script>
+    var classyear, blocksize, chemfree = null;
+
+    /**
+     * A multidimensional object?
+     * Dimension 1: SVG Path ID
+     * Dimension 2: Class year
+     * Dimension 3: 
+     * @type {Object}
+     */
+    
+    /* 1: deep blue, 2: blue, 3: yellow, 4: orange, 5: red */
+    var colors = ["", "#262262", "#1B75BC", "#D7DF23", "#FBB040", "#8C4646"];
+    
+    /* 1: not likely, 3: toss-up, 5: very likely */
+    var colorData = {
+        'true': {
+            'quint': {
+                'sophomore': {
+                    "HOWARDHALL": colors[4]
+                },
+                'junior': {
+                    "HOWARDHALL": colors[5]
+                },
+                'senior': {
+                    "HOWARDHALL": colors[5]
+                }
+            },
+            'quad': {
+                'sophomore': {
+                    "HOWARDHALL": colors[3],
+                    "_52HARPSWELL": colors[3] 
+                },
+                'junior': {
+                    "HOWARDHALL": colors[5],
+                    "_52HARPSWELL": colors[4]
+                },
+                'senior': {
+                    "HOWARDHALL": colors[5],
+                    "_52HARPSWELL": colors[5]
+                }
+            },
+            'triple': {
+                'sophomore': {
+                    "MAYFLOWERAPTS": colors[5]
+                },
+                'junior': {
+                    "MAYFLOWERAPTS": colors[5]
+                },
+                'senior': {
+                    "MAYFLOWERAPTS": colors[5]
+                }
+            },
+            'double': {
+                'sophomore': {
+                    "SMITHHOUSE": colors[1],
+                    "MAYFLOWERAPTS": colors[3],
+                    "_52HARPSWELL": colors[4],
+                },
+                'junior': {
+                    "SMITHHOUSE": colors[3],
+                    "MAYFLOWERAPTS": colors[5],
+                    "_52HARPSWELL": colors[5],
+                },
+                'senior': {
+                    "SMITHHOUSE": colors[4],
+                    "MAYFLOWERAPTS": colors[5],
+                    "_52HARPSWELL": colors[5],
+                }
+            },
+            'single': {
+                'sophomore': {
+                    "SMITHHOUSE": colors[2],
+                    "_52HARPSWELL": colors[2],
+                },
+                'junior': {
+                    "SMITHHOUSE": colors[4],
+                    "_52HARPSWELL": colors[5],
+                },
+                'senior': {
+                    "SMITHHOUSE": colors[5],
+                    "_52HARPSWELL": colors[5],
+                }
+            },
+        },
+        'false': {
+            'quint': {
+                'sophomore': {
+                    "STOWEHALL": colors[4]
+                },
+                'junior': {
+                    "STOWEHALL": colors[5]
+                },
+                'senior': {
+                    "STOWEHALL": colors[5]
+                }
+            },
+            'quad': {
+                'sophomore': {
+                    "COLESTOWER": colors[1],
+                    "CHAMBERLAIN": colors[1],
+                    "HARPSWELLAPTS": colors[2],
+                    "PINEAPTS": colors[3],
+                },
+                'junior': {
+                    "COLESTOWER": colors[2],
+                    "CHAMBERLAIN": colors[1],
+                    "HARPSWELLAPTS": colors[4],
+                    "PINEAPTS": colors[5],
+                },
+                'senior': {
+                    "COLESTOWER": colors[4],
+                    "CHAMBERLAIN": colors[4],
+                    "HARPSWELLAPTS": colors[5],
+                    "PINEAPTS": colors[5],
+                }
+            },
+            'triple': {
+                'sophomore': {
+                    "BRUNSWICKAPTS": colors[3],
+                    "COLESTOWER": colors[3],
+                    "STOWEINN": colors[5]
+                },
+                'junior': {
+                    "BRUNSWICKAPTS": colors[5],
+                    "COLESTOWER": colors[3],
+                    "STOWEINN": colors[5]
+                },
+                'senior': {
+                    "BRUNSWICKAPTS": colors[5],
+                    "COLESTOWER": colors[4],
+                    "STOWEINN": colors[5]
+                }
+            },
+            'double': {
+                'sophomore': {
+                    "BRUNSWICKAPTS": colors[5],
+                    "COLESTOWER": colors[1],
+                    "STOWEINN": colors[5],
+                },
+                'junior': {
+                    "BRUNSWICKAPTS": colors[5],
+                    "COLESTOWER": colors[1],
+                    "STOWEINN": colors[5],
+                },
+                'senior': {
+                    "BRUNSWICKAPTS": colors[5],
+                    "COLESTOWER": colors[3],
+                    "STOWEINN": colors[5],
+                }
+            },
+            'single': {
+                'sophomore': {
+                    "STOWEINN": colors[1],
+                    "CHAMBERLAIN": colors[1]
+                },
+                'junior': {
+                    "STOWEINN": colors[2],
+                    "CHAMBERLAIN": colors[1]
+                },
+                'senior': {
+                    "STOWEINN": colors[5],
+                    "CHAMBERLAIN": colors[4]
+                }
+            }
+        }
+    }
+
+jQuery(document).ready(function() {
+    jQuery('#class').change(function() { 
+        classyear = jQuery(this).find('option:selected')[0].value; 
+        updateImage();
+    });
+
+    jQuery('#block').change(function() { 
+        blocksize = jQuery(this).find('option:selected')[0].value;
+        updateImage();
+    });
+
+    jQuery('#chemfree').change(function() { 
+        chemfree = jQuery(this).find('option:selected')[0].value; 
+        updateImage();
+    });
+
+    function updateImage() {
+        console.log(classyear, blocksize, chemfree)
+
+        if (classyear != null && blocksize != null && chemfree != null) {
+            var currentdata = colorData[chemfree][blocksize][classyear];
+            console.log(currentdata);
+
+            jQuery('.cls-9').velocity({
+                fill: "#DFDFDF"
+            });
+
+            jQuery('#HIDING_BOX').velocity({
+                opacity: 0
+            });
+
+            jQuery('.cls-7, .cls-8, .cls-3, .cls-5, .cls-6').velocity({
+                fill: "#CCC",
+                stroke: "999"
+            });
+
+            for (var key in currentdata) {
+                var value = currentdata[key];
+
+                jQuery('#' + key + ' .cls-9').velocity({
+                    fill: value
+                });
+            }
+        }
+    }
+
+    /* PINE */
+    jQuery('#PINE_HOVER path').hover(function() {
+        jQuery('#PINEAPTS .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.pine-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#PINEAPTS .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.pine-info').hide();
+        });
+    });
+
+    /* 52 HARPS */
+    jQuery('#_52_HARPSWELL_HOVER path').hover(function() {
+        jQuery('#_52HARPSWELL .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('._52-harps-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#_52HARPSWELL .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('._52-harps-info').hide();
+        });
+    });
+
+    /* HOWARD */
+    jQuery('#HOWARD_HOVER path').hover(function() {
+        jQuery('#HOWARDHALL .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.howard-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#HOWARDHALL .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.howard-info').hide();
+        });
+    });
+
+    jQuery('#STOWE_HOVER path').hover(function() {
+        jQuery('#STOWEHALL .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.stowe-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#STOWEHALL .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.stowe-info').hide();
+        });
+    });
+
+    jQuery('#COLES_HOVER path').hover(function() {
+        jQuery('#COLESTOWER .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.coles-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#COLESTOWER .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.coles-info').hide();
+        });
+    });
+
+    jQuery('#CHAMBO_HOVER path').hover(function() {
+        jQuery('#CHAMBERLAIN .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.chambo-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#CHAMBERLAIN .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.chambo-info').hide();
+        });
+    });
+
+    jQuery('#BRUNSWICK_HOVER path').hover(function() {
+        jQuery('#BRUNSWICKAPTS .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.brunswick-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#BRUNSWICKAPTS .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.brunswick-info').hide();
+        });
+    });
+
+    jQuery('#MAYFLOWER_HOVER path').hover(function() {
+        jQuery('#MAYFLOWERAPTS .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.mayflower-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#MAYFLOWERAPTS .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.mayflower-info').hide();
+        });
+    });
+
+    jQuery('#STOWE_INN_HOVER path').hover(function() {
+        jQuery('#STOWEINN .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.stowe-inn-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#STOWEINN .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.stowe-inn-info').hide();
+        });
+    });
+
+    jQuery('#HARPSWELL_HOVER path').hover(function() {
+        jQuery('#HARPSWELLAPTS .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.harpswell-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#HARPSWELLAPTS .cls-9').velocity({
+            opacity: 1
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.harpswell-info').hide();
+        });
+    });
+
+    jQuery('#SMITH_HOVER path').hover(function() {
+        jQuery('#SMITHHOUSE .cls-9').velocity({
+            opacity: 0.5
+        });
+
+        jQuery('.smith-info').show();
+        jQuery('.place-info').fadeIn(100);
+    }, function() {
+        jQuery('#SMITHHOUSE .cls-9').velocity({
+            opacity: 5
+        });
+
+        jQuery('.place-info').fadeOut(100, function() {
+            jQuery('.smith-info').hide();
+        });
+    });
+});
+
+jQuery(window).scroll(function() {
+    var scroll = jQuery(window).scrollTop();
+
+    if (scroll >= 500 && scroll <= 3000) {
+        jQuery(".map").addClass("map-in-place");
+    } else {
+        jQuery(".map").removeClass("map-in-place");
+    }
+
+var visible = jQuery('.single__footer').visible();
+if(visible) {
+jQuery('.map').hide();
+} else {
+jQuery('.map').show();
+}
+});
+
+</script>
